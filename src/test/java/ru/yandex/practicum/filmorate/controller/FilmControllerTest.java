@@ -1,11 +1,13 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class FilmControllerTest {
 
@@ -23,24 +25,27 @@ class FilmControllerTest {
 
         // empty film shouldn't be posted
         Film emptyFilm = new Film();
-        filmController.createFilm(emptyFilm);
-        assertEquals(1, filmController.getAllFilms().size());
+        assertThrows(ValidationException.class, () -> {
+            filmController.createFilm(emptyFilm);
+        });
 
         // Film with release date in 1894 shouldn't be posted
         Film wrongReleaseDateFilm = new Film();
         wrongReleaseDateFilm.setName("Pirates of the caribbean");
         wrongReleaseDateFilm.setReleaseDate(LocalDate.of(1895, 12, 28).minusDays(1));
         wrongReleaseDateFilm.setDuration(120);
-        filmController.createFilm(wrongReleaseDateFilm);
-        assertEquals(1, filmController.getAllFilms().size());
+        assertThrows(ValidationException.class, () -> {
+            filmController.createFilm(wrongReleaseDateFilm);
+        });
 
         // Film with negative duration shouldn't be posted
         Film negativeDurationFilm = new Film();
         negativeDurationFilm.setName("Pirates of the caribbean");
         negativeDurationFilm.setReleaseDate(LocalDate.of(2003, 9, 17));
         negativeDurationFilm.setDuration(-120);
-        filmController.createFilm(negativeDurationFilm);
-        assertEquals(1, filmController.getAllFilms().size());
+        assertThrows(ValidationException.class, () -> {
+            filmController.createFilm(negativeDurationFilm);
+        });
     }
 
     @Test
@@ -64,8 +69,9 @@ class FilmControllerTest {
         // A film shouldn't be updated if the input is empty film
         Film emptyFilm = new Film();
         emptyFilm.setId(1);
-        filmController.updateFilm(emptyFilm);
-        assertEquals("Lord of the rings", filmController.getAllFilms().stream().toList().getFirst().getName());
+        assertThrows(ValidationException.class, () -> {
+            filmController.updateFilm(emptyFilm);
+        });
 
         // Film with release date in 1894 shouldn't be updated
         Film wrongReleaseDateFilm = new Film();
@@ -73,8 +79,9 @@ class FilmControllerTest {
         wrongReleaseDateFilm.setReleaseDate(LocalDate.of(1895, 12, 28).minusDays(1));
         wrongReleaseDateFilm.setDuration(120);
         wrongReleaseDateFilm.setId(1);
-        filmController.updateFilm(wrongReleaseDateFilm);
-        assertEquals("Lord of the rings", filmController.getAllFilms().stream().toList().getFirst().getName());
+        assertThrows(ValidationException.class, () -> {
+            filmController.updateFilm(wrongReleaseDateFilm);
+        });
 
         // Film with negative duration shouldn't be updated
         Film negativeDurationFilm = new Film();
@@ -82,7 +89,8 @@ class FilmControllerTest {
         negativeDurationFilm.setReleaseDate(LocalDate.of(2003, 9, 17));
         negativeDurationFilm.setDuration(-120);
         negativeDurationFilm.setId(1);
-        filmController.createFilm(negativeDurationFilm);
-        assertEquals("Lord of the rings", filmController.getAllFilms().stream().toList().getFirst().getName());
+        assertThrows(ValidationException.class, () -> {
+            filmController.createFilm(negativeDurationFilm);
+        });
     }
 }
