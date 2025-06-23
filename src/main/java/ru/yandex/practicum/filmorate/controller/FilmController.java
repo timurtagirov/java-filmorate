@@ -15,7 +15,7 @@ import java.util.HashMap;
 @RequestMapping("/films")
 public class FilmController {
     HashMap<Integer, Film> films = new HashMap<>();
-    final LocalDate EARLIEST_RELEASE_DATE = LocalDate.of(1895, 12, 28);
+    final LocalDate earliestReleaseDate = LocalDate.of(1895, 12, 28);
 
     @GetMapping
     public Collection<Film> getAllFilms() {
@@ -33,7 +33,7 @@ public class FilmController {
             if (film.getDescription() != null && film.getDescription().length() > 200) {
                 throw new ValidationException("Description shouldn't exceed 200 symbols");
             }
-            if (film.getReleaseDate() == null || film.getReleaseDate().isBefore(EARLIEST_RELEASE_DATE)) {
+            if (film.getReleaseDate() == null || film.getReleaseDate().isBefore(earliestReleaseDate)) {
                 throw new ValidationException("Release date can't be earlier than Dec, 28, 1895");
             }
             if (film.getDuration() == null || film.getDuration() < 0) {
@@ -60,7 +60,7 @@ public class FilmController {
             if (film.getDescription() != null && film.getDescription().length() > 200) {
                 throw new ValidationException("Description shouldn't exceed 200 symbols");
             }
-            if (film.getReleaseDate() == null || film.getReleaseDate().isBefore(EARLIEST_RELEASE_DATE)) {
+            if (film.getReleaseDate() == null || film.getReleaseDate().isBefore(earliestReleaseDate)) {
                 throw new ValidationException("Release date can't be earlier than Dec, 28, 1895");
             }
             if (film.getDuration() == null || film.getDuration() < 0) {
