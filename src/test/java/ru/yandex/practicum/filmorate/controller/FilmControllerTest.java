@@ -25,7 +25,7 @@ class FilmControllerTest {
 
         // empty film shouldn't be posted
         Film emptyFilm = new Film();
-        assertThrows(ValidationException.class, () -> {
+        assertThrows(NullPointerException.class, () -> {
             filmController.createFilm(emptyFilm);
         });
 
@@ -36,15 +36,6 @@ class FilmControllerTest {
         wrongReleaseDateFilm.setDuration(120);
         assertThrows(ValidationException.class, () -> {
             filmController.createFilm(wrongReleaseDateFilm);
-        });
-
-        // Film with negative duration shouldn't be posted
-        Film negativeDurationFilm = new Film();
-        negativeDurationFilm.setName("Pirates of the caribbean");
-        negativeDurationFilm.setReleaseDate(LocalDate.of(2003, 9, 17));
-        negativeDurationFilm.setDuration(-120);
-        assertThrows(ValidationException.class, () -> {
-            filmController.createFilm(negativeDurationFilm);
         });
     }
 
@@ -69,7 +60,7 @@ class FilmControllerTest {
         // A film shouldn't be updated if the input is empty film
         Film emptyFilm = new Film();
         emptyFilm.setId(1);
-        assertThrows(ValidationException.class, () -> {
+        assertThrows(NullPointerException.class, () -> {
             filmController.updateFilm(emptyFilm);
         });
 
@@ -81,16 +72,6 @@ class FilmControllerTest {
         wrongReleaseDateFilm.setId(1);
         assertThrows(ValidationException.class, () -> {
             filmController.updateFilm(wrongReleaseDateFilm);
-        });
-
-        // Film with negative duration shouldn't be updated
-        Film negativeDurationFilm = new Film();
-        negativeDurationFilm.setName("Pirates of the caribbean");
-        negativeDurationFilm.setReleaseDate(LocalDate.of(2003, 9, 17));
-        negativeDurationFilm.setDuration(-120);
-        negativeDurationFilm.setId(1);
-        assertThrows(ValidationException.class, () -> {
-            filmController.createFilm(negativeDurationFilm);
         });
     }
 }

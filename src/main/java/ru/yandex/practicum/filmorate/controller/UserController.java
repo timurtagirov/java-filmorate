@@ -1,12 +1,12 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
 
@@ -23,72 +23,41 @@ public class UserController {
     }
 
     @PostMapping
-    public User createUser(@RequestBody User user) {
+    public User createUser(@Valid @RequestBody User user) {
         log.debug("Creating a user a film...");
-        try {
-            if (user.getEmail() == null || user.getEmail().isBlank() || !(user.getEmail().contains("@"))) {
-                throw new ValidationException("Incorrect email");
-            }
-            if (user.getLogin() == null || user.getLogin().isBlank() || user.getLogin().contains(" ")) {
-                throw new ValidationException("Incorrect login");
-            }
-            if (user.getName() == null || user.getName().isBlank()) {
-                user.setName(user.getLogin());
-            }
-            if (user.getBirthday() == null || user.getBirthday().isAfter(LocalDate.now())) {
-                throw new ValidationException("Incorrect birthday");
-            }
-            log.trace("The data passed all checks. Adding the user to the library...");
-            user.setId(getNextId());
-            users.put(user.getId(), user);
-            log.debug("The user ", user.getName(), " has been successfully created");
-        } catch (ValidationException e) {
-            log.error("Error! ", e);
-            throw e;
-        }
+        checkUser(user);
+        log.trace("The data passed all checks. Adding the user to the library...");
+        user.setId(IdGenerator.getNextId(users));
+        users.put(user.getId(), user);
+        log.debug("The user ", user.getName(), " has been successfully created");
         return user;
     }
 
     @PutMapping
-    public User updateUser(@RequestBody User user) {
+    public User updateUser(@Valid @RequestBody User user) {
         log.debug("Updating a user...");
-        try {
-            if (user.getEmail() == null || user.getEmail().isBlank() || !(user.getEmail().contains("@"))) {
-                throw new ValidationException("Incorrect email");
-            }
-            if (user.getLogin() == null || user.getLogin().isBlank() || user.getLogin().contains(" ")) {
-                throw new ValidationException("Incorrect login");
-            }
-            if (user.getName() == null || user.getName().isBlank()) {
-                user.setName(user.getLogin());
-            }
-            if (user.getBirthday() == null || user.getBirthday().isAfter(LocalDate.now())) {
-                throw new ValidationException("Incorrect birthday");
-            }
-            if (!users.containsKey(user.getId())) {
-                throw new NotFoundException("A user with such ID doesn't exist");
-            }
-            log.trace("The data passed all checks. Updating the user...");
-            User oldUser = users.get(user.getId());
-            oldUser.setEmail(user.getEmail());
-            oldUser.setLogin(user.getLogin());
-            oldUser.setName(user.getName());
-            oldUser.setBirthday(user.getBirthday());
-            log.debug("The user ", oldUser.getName(), "  has been successfully updated");
-            return oldUser;
-        } catch (RuntimeException e) {
-            log.error("Error! ", e);
-            throw e;
+        checkUser(user);
+        if (!users.containsKey(user.getId())) {
+            log.error("Error! A user with such ID doesn't exist");
+            throw new NotFoundException("A user with such ID doesn't exist");
         }
-
+        log.trace("The data passed all checks. Updating the user...");
+        User oldUser = users.get(user.getId());
+        oldUser.setEmail(user.getEmail());
+        oldUser.setLogin(user.getLogin());
+        oldUser.setName(user.getName());
+        oldUser.setBirthday(user.getBirthday());
+        log.debug("The user ", oldUser.getName(), "  has been successfully updated");
+        return oldUser;
     }
 
-    private Integer getNextId() {
-        Integer currentMaxId = users.keySet()
-                .stream()
-                .mapToInt(id -> id)
-                .max()
-                .orElse(0);
-        return ++currentMaxId;
+    private void checkUser(User user) {
+        if (user.getLogin().trim().contains(" ")) {
+            log.error("Error! Login contains space");
+            throw new ValidationException("Incorrect login");
+        }
+        if (user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
+        }
     }
 }
