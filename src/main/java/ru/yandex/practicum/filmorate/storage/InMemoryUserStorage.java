@@ -11,7 +11,7 @@ import java.util.HashMap;
 
 @Slf4j
 @Component
-public class InMemoryUserStorage implements UserStorage{
+public class InMemoryUserStorage implements UserStorage {
     HashMap<Integer, User> users = new HashMap<>();
 
     public Collection<User> getAllUsers() {
