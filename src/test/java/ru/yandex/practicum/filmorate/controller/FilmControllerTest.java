@@ -1,8 +1,12 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 
 import java.time.LocalDate;
 
@@ -10,6 +14,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class FilmControllerTest {
+    FilmController filmController = new FilmController(new FilmService(new InMemoryUserStorage(), new InMemoryFilmStorage()));
+
+    @BeforeEach
+    public void renewFilmController() {
+        filmController = new FilmController(new FilmService(new InMemoryUserStorage(), new InMemoryFilmStorage()));
+    }
 
     @Test
     public void testPostFilm() {
@@ -19,7 +29,6 @@ class FilmControllerTest {
         film.setDuration(120);
 
         // A film should be posted
-        FilmController filmController = new FilmController();
         filmController.createFilm(film);
         assertEquals(1, filmController.getAllFilms().size());
 
@@ -47,7 +56,6 @@ class FilmControllerTest {
         film.setDuration(120);
 
         // A film should be posted
-        FilmController filmController = new FilmController();
         filmController.createFilm(film);
         assertEquals(1, filmController.getAllFilms().size());
 

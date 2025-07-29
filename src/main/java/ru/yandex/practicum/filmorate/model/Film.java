@@ -1,9 +1,14 @@
 package ru.yandex.practicum.filmorate.model;
 
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Film.
@@ -24,4 +29,6 @@ public class Film {
     @NotNull(message = "Please provide duration of a movie")
     @Positive(message = "Duration of a movie can't be negative")
     Integer duration;
+
+    Set<Integer> likes = new HashSet<>();
 }
