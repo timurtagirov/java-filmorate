@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -31,4 +32,8 @@ public class Film {
     Integer duration;
 
     Set<Integer> likes = new HashSet<>();
+
+    ArrayList<String> genre = new ArrayList<>();
+
+    public Rating rating;
 }
