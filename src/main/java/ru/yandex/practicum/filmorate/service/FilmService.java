@@ -2,27 +2,36 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.LikeCounter;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.LikeStorage;
+import ru.yandex.practicum.filmorate.storage.MpaStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 public class FilmService {
     private final UserStorage userStorage;
     private final FilmStorage filmStorage;
+    private final LikeStorage likeStorage;
+
 
     @Autowired
-    public FilmService(UserStorage userStorage, FilmStorage filmStorage) {
+    public FilmService(@Qualifier("userDbStorage") UserStorage userStorage,
+                       @Qualifier("filmDbStorage") FilmStorage filmStorage,
+                       LikeStorage likeStorage,
+                       MpaStorage mpaStorage) {
         this.userStorage = userStorage;
         this.filmStorage = filmStorage;
+        this.likeStorage = likeStorage;
     }
 
     public Collection<Film> getAllFilms() {
@@ -51,7 +60,7 @@ public class FilmService {
         }
         log.trace("The user is found. Proceed to adding like");
         // Проверку на наличие фильма не стал писать, потому что getFilm() в этом случае и так выбросит ошибку
-        filmStorage.getFilm(filmId).getLikes().add(userId);
+        likeStorage.addLike(filmId, userId);
         log.debug("The like is successfully added");
     }
 
@@ -64,16 +73,22 @@ public class FilmService {
         }
         log.trace("The user is found. Proceed to adding like");
         // Проверку на наличие фильма не стал писать, потому что getFilm() в этом случае и так выбросит ошибку
-        filmStorage.getFilm(filmId).getLikes().remove(userId);
+        likeStorage.removeLike(filmId, userId);
         log.debug("The like is successfully removed");
     }
 
     public Collection<Film> getPopularFilms(int count) {
-        log.debug("Getting top of the most popular films");
-        return filmStorage.getAllFilms()
-                .stream()
-                .sorted(Comparator.comparing((Film film) -> film.getLikes().size()).reversed())
-                .limit(count)
+        Collection<Film> allFilms = getAllFilms();
+        Map<Integer, Film> filmMap = allFilms.stream()
+                .collect(Collectors.toMap(Film::getId, f -> f));
+        List<LikeCounter> sortedLikesStats = likeStorage.getTopFilms(count);
+        List<Integer> filmIds = sortedLikesStats.stream()
+                .map(LikeCounter::getFilmId).toList();
+        List<Film> sortedFilms = new ArrayList<>();
+        sortedFilms = filmIds.stream()
+                .map(filmMap::get)
+                .filter(Objects::nonNull)
                 .toList();
+        return sortedFilms;
     }
 }

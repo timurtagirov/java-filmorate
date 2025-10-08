@@ -11,7 +11,7 @@ import java.util.Collection;
 import java.util.HashMap;
 
 @Slf4j
-@Component
+@Component("inMemoryFilmStorage")
 public class InMemoryFilmStorage implements FilmStorage {
     HashMap<Integer, Film> films = new HashMap<>();
     final LocalDate earliestReleaseDate = LocalDate.of(1895, 12, 28);
@@ -48,14 +48,15 @@ public class InMemoryFilmStorage implements FilmStorage {
         return oldFilm;
     }
 
-    public Film removeFilm(Film film) {
+    public Film removeFilm(int id) {
         log.debug("Removing a film...");
-        if (!films.containsKey(film.getId())) {
+        Film film = films.get(id);
+        if (!films.containsKey(id)) {
             log.error("Error! A film with such ID doesn't exist");
             throw new NotFoundException("A film with such ID doesn't exist");
         }
         log.trace("The film passed all checks. Updating it...");
-        films.remove(film.getId());
+        films.remove(id);
         log.debug("The film ", film.getName(), "  has been successfully removed");
         return film;
     }

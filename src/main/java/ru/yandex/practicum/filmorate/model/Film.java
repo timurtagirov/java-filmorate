@@ -8,8 +8,7 @@ import lombok.Data;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 /**
  * Film.
@@ -31,9 +30,7 @@ public class Film {
     @Positive(message = "Duration of a movie can't be negative")
     Integer duration;
 
-    Set<Integer> likes = new HashSet<>();
+    List<Genre> genres = new ArrayList<>();
 
-    ArrayList<String> genre = new ArrayList<>();
-
-    public Rating rating;
+    public Mpa mpa;
 }
