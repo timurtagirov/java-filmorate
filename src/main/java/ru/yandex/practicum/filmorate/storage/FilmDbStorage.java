@@ -10,17 +10,14 @@ import ru.yandex.practicum.filmorate.exception.InternalServerException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.FilmToGenre;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.mappers.FilmRowMapper;
-import ru.yandex.practicum.filmorate.storage.mappers.FilmToGenreRowMapper;
 import ru.yandex.practicum.filmorate.storage.mappers.GenreMapper;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Repository("filmDbStorage")
@@ -28,7 +25,6 @@ import java.util.stream.Collectors;
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbc;
     private final FilmRowMapper filmMapper;
-    private final FilmToGenreRowMapper filmToGenreMapper;
     private final GenreMapper genreMapper;
     final LocalDate earliestReleaseDate = LocalDate.of(1895, 12, 28);
     private static final String FIND_ALL_FILMS_QUERY = "SELECT t1.*, t2.name AS rating_name FROM films t1 " +
@@ -58,16 +54,21 @@ public class FilmDbStorage implements FilmStorage {
         List<Film> films = jdbc.query(FIND_ALL_FILMS_QUERY, filmMapper);
 
         // получаем список всех пар фильм-жанр
-        List<FilmToGenre> genres = jdbc.query(FIND_ALL_GENRES_QUERY, filmToGenreMapper);
+        Map<Integer, List<Genre>> filmGenres = new HashMap<>();
+        jdbc.query(FIND_ALL_GENRES_QUERY, rs -> {
+            int filmId = rs.getInt("film_id");
+            filmGenres.computeIfAbsent(filmId, key -> new ArrayList<>())
+                    .add(new Genre(rs.getInt("genre_id"), rs.getString("genre")));
+        });
 
-        //превращаем список фильмов в Map для более быстрого поиска по id
-        Map<Integer, Film> filmMap = films.stream().collect(Collectors.toMap(Film::getId, film -> film));
-        // проходимся по всем сопоставлениям Жанр - фильм, и подставляем жанры в нужные фильмы
-        for (FilmToGenre filmToGenre : genres) {
-            Film film = filmMap.get(filmToGenre.getFilmId());
-            film.getGenres().add(filmToGenre.getGenre());
+        // проходимся по всем фильмам, и подставляем туда жанры
+        for (Film film : films) {
+            if (filmGenres.containsKey(film.getId())) {
+                List<Genre> genres = filmGenres.get(film.getId());
+                film.getGenres().addAll(genres);
+            }
         }
-        return filmMap.values();
+        return films;
     }
 
     @Override
@@ -89,7 +90,7 @@ public class FilmDbStorage implements FilmStorage {
             return ps;
         }, keyHolder);
 
-        // Добавляем сгенерированный id фильма в film, он нужен нам, чтобы указать в жанрах и лайках
+        // Добавляем сгенерированный id фильма в film, он нужен нам, чтобы указать в жанрах
         Number key = Objects.requireNonNull(keyHolder.getKey(), "No key generated for films");
         int filmId = key.intValue();
         film.setId(filmId);

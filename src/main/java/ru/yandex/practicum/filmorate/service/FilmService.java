@@ -6,15 +6,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.LikeCounter;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.LikeStorage;
 import ru.yandex.practicum.filmorate.storage.MpaStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collection;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -78,17 +77,6 @@ public class FilmService {
     }
 
     public Collection<Film> getPopularFilms(int count) {
-        Collection<Film> allFilms = getAllFilms();
-        Map<Integer, Film> filmMap = allFilms.stream()
-                .collect(Collectors.toMap(Film::getId, f -> f));
-        List<LikeCounter> sortedLikesStats = likeStorage.getTopFilms(count);
-        List<Integer> filmIds = sortedLikesStats.stream()
-                .map(LikeCounter::getFilmId).toList();
-        List<Film> sortedFilms = new ArrayList<>();
-        sortedFilms = filmIds.stream()
-                .map(filmMap::get)
-                .filter(Objects::nonNull)
-                .toList();
-        return sortedFilms;
+        return likeStorage.getTopFilms(count);
     }
 }

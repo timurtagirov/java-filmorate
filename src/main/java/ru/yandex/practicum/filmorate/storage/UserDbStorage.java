@@ -6,22 +6,18 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.Friendship;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.mappers.FriendsRowMapper;
 import ru.yandex.practicum.filmorate.storage.mappers.UserRowMapper;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Repository("userDbStorage")
 @RequiredArgsConstructor
 public class UserDbStorage implements UserStorage {
     private final JdbcTemplate jdbc;
     private final UserRowMapper userMapper;
-    private final FriendsRowMapper friendMapper;
 
     private static final String FIND_USER_BY_ID_QUERY = "SELECT * FROM users WHERE id = ?";
     private static final String FIND_FRIENDS_BY_USER_ID_QUERY = "SELECT friend_id FROM friends WHERE user_id = ?";
@@ -35,24 +31,28 @@ public class UserDbStorage implements UserStorage {
     private static final String INSERT_FRIENDS_QUERY = "MERGE INTO friends (user_id, friend_id) " +
             "KEY (user_id, friend_id) VALUES (?, ?)";
     private static final String FIND_ALL_USERS_QUERY = "SELECT * FROM users";
-    private static final String FIND_ALL_LIKES_QUERY = "SELECT user_id, friend_id FROM friends";
+    private static final String FIND_ALL_FRIENDS_QUERY = "SELECT user_id, friend_id FROM friends";
 
     @Override
     public Collection<User> getAllUsers() {
         // Получаем список фильмов с рейтингами
         List<User> users = jdbc.query(FIND_ALL_USERS_QUERY, userMapper);
 
-        // получаем список всех лайков
-        List<Friendship> friendships = jdbc.query(FIND_ALL_LIKES_QUERY, friendMapper);
+        // получаем список всех друзей
+        Map<Integer, HashSet<Integer>> friendships = new HashMap<>();
+        jdbc.query(FIND_ALL_FRIENDS_QUERY, rs -> {
+            int userId = rs.getInt("user_id");
+            friendships.computeIfAbsent(userId, key -> new HashSet<>())
+                    .add(rs.getInt("friend_id"));
+        });
 
-        //превращаем список фильмов в Map для более быстрого поиска по id
-        Map<Integer, User> userMap = users.stream().collect(Collectors.toMap(User::getId, user -> user));
-        // проходимся по всем лайкам и подставляем лайки в нужные фильмы
-        for (Friendship friendship : friendships) {
-            User user = userMap.get(friendship.getUserId());
-            user.getFriends().add(friendship.getFriendId());
+        for (User user : users) {
+            if (friendships.containsKey(user.getId())) {
+                HashSet<Integer> friends = friendships.get(user.getId());
+                user.getFriends().addAll(friends);
+            }
         }
-        return userMap.values();
+        return users;
     }
 
     @Override

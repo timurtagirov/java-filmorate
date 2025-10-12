@@ -27,18 +27,13 @@ import static org.junit.jupiter.api.Assertions.*;
 @Import({UserDbStorage.class,
         FilmDbStorage.class,
         UserRowMapper.class,
-        FriendsRowMapper.class,
         FilmRowMapper.class,
-        FilmToGenreRowMapper.class,
-        GenreMapper.class,
-        LikeRowMapper.class})
+        GenreMapper.class})
 class FilmorateApplicationTest {
     private final JdbcTemplate jdbc;
     private final UserRowMapper userMapper;
-    private final FriendsRowMapper friendMapper;
     private final FilmRowMapper filmMapper;
     private final GenreMapper genreMapper;
-    private final FilmToGenreRowMapper filmToGenreMapper;
     private UserDbStorage userStorage;
     private FilmDbStorage filmStorage;
     private static final String TRUNCATE_FILM_QUERY = "DELETE FROM films";
@@ -46,8 +41,8 @@ class FilmorateApplicationTest {
 
     @BeforeEach
     public void setUp() {
-        userStorage = new UserDbStorage(jdbc, userMapper, friendMapper);
-        filmStorage = new FilmDbStorage(jdbc, filmMapper, filmToGenreMapper, genreMapper);
+        userStorage = new UserDbStorage(jdbc, userMapper);
+        filmStorage = new FilmDbStorage(jdbc, filmMapper, genreMapper);
     }
 
     @Test

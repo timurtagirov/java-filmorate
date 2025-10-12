@@ -12,20 +12,20 @@ import java.util.Set;
 
 @Data
 public class User {
-    Integer id;
+    private Integer id;
 
     @NotNull(message = "Please provide an email")
     @Email(message = "Incorrect email")
-    String email;
+    private String email;
 
     @NotBlank(message = "Incorrect login")
-    String login;
+    private String login;
 
-    String name;
+    private String name;
 
     @NotNull(message = "Please provide birthday")
     @Past(message = "Incorrect birthday")
-    LocalDate birthday;
+    private LocalDate birthday;
 
-    Set<Integer> friends = new HashSet<>();
+    private Set<Integer> friends = new HashSet<>();
 }
