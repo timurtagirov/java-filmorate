@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
@@ -16,7 +17,7 @@ public class UserService {
     private final UserStorage storage;
 
     @Autowired
-    public UserService(UserStorage storage) {
+    public UserService(@Qualifier("userDbStorage") UserStorage storage) {
         this.storage = storage;
     }
 
@@ -44,22 +45,20 @@ public class UserService {
         User secondUser = storage.getUser(secondUserId);
 
         log.trace("Users are found. Now adding to friends");
-        firstUser.getFriends().add(secondUser.getId());
-        secondUser.getFriends().add(firstUser.getId());
+        storage.addFriends(firstUserId, secondUserId);
         log.debug("Users are successfully added to friends of each other");
     }
 
-    public void removeFromFriends(Integer firstUserId, Integer secondUserId) {
+    public void removeFromFriends(Integer id, Integer friendId) {
         log.debug("Removing a user from friends");
         log.trace("Looking for users");
         // Проверку на наличие юзера не стал писать, потому что getUser() в этом случае и так выбросит ошибку
-        User firstUser = storage.getUser(firstUserId);
-        User secondUser = storage.getUser(secondUserId);
+        User firstUser = storage.getUser(id);
+        User friend = storage.getUser(friendId);
 
         log.trace("Users are found. Checking that they are friends");
-        if (firstUser.getFriends().contains(secondUserId)) {
-            firstUser.getFriends().remove(secondUserId);
-            secondUser.getFriends().remove(firstUserId);
+        if (firstUser.getFriends().contains(friendId)) {
+            storage.removeFriendship(id, friendId);
             log.debug("Users are successfully removed from friends of each other");
         }
     }

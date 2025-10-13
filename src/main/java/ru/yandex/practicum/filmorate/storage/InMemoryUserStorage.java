@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.HashMap;
 
 @Slf4j
-@Component
+@Component("inMemoryUserStorage")
 public class InMemoryUserStorage implements UserStorage {
     HashMap<Integer, User> users = new HashMap<>();
 
@@ -46,14 +46,15 @@ public class InMemoryUserStorage implements UserStorage {
         return oldUser;
     }
 
-    public User removeUser(User user) {
+    public User removeUser(int id) {
+        User user = users.get(id);
         log.debug("Removing a user...");
-        if (!users.containsKey(user.getId())) {
+        if (!users.containsKey(id)) {
             log.error("Error! A user with such ID doesn't exist");
             throw new NotFoundException("A user with such ID doesn't exist");
         }
         log.trace("The data passed all checks. Updating it...");
-        users.remove(user.getId());
+        users.remove(id);
         log.debug("The user ", user.getName(), "  has been successfully removed");
         return user;
     }
@@ -65,6 +66,16 @@ public class InMemoryUserStorage implements UserStorage {
         return users.get(id);
     }
 
+    @Override
+    public void addFriends(int id, int friendId) {
+        users.get(id).getFriends().add(friendId);
+    }
+
+    @Override
+    public void removeFriendship(int id, int friendId) {
+        users.get(id).getFriends().remove(friendId);
+    }
+
     private void checkUser(User user) {
         if (user.getLogin().trim().contains(" ")) {
             log.error("Error! Login contains space");
@@ -74,4 +85,5 @@ public class InMemoryUserStorage implements UserStorage {
             user.setName(user.getLogin());
         }
     }
+
 }

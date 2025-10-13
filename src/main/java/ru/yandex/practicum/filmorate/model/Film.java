@@ -7,28 +7,29 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Film.
  */
 @Data
 public class Film {
-    Integer id;
+    private Integer id;
 
     @NotBlank(message = "Please provide a name of the film")
-    String name;
+    private String name;
 
     @Size(max = 200)
-    String description;
+    private String description;
 
     @NotNull(message = "Please provide release date")
-    LocalDate releaseDate;
+    private LocalDate releaseDate;
 
     @NotNull(message = "Please provide duration of a movie")
     @Positive(message = "Duration of a movie can't be negative")
-    Integer duration;
+    private Integer duration;
 
-    Set<Integer> likes = new HashSet<>();
+    private List<Genre> genres = new ArrayList<>();
+    private Mpa mpa;
 }

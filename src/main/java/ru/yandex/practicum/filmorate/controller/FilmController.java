@@ -33,8 +33,8 @@ public class FilmController {
 
     @GetMapping("/popular")
     public Collection<Film> getPopularFilms(@RequestParam(defaultValue = "10") Integer count) {
-        System.out.println("count = " + count);
-        return filmService.getPopularFilms(count);
+        Collection<Film> films = filmService.getPopularFilms(count);
+        return films;
     }
 
     @PostMapping
